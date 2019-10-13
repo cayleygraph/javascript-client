@@ -7,7 +7,15 @@ class Value {
   }
 }
 
-type Step = { type: string; steps?: Step[] };
+type Step = { type: string };
+
+function toString(steps: Step[]) {
+  let string = "g";
+  for (const step of steps) {
+    string += `.${step.type}()`;
+  }
+  return string;
+}
 
 /**
  * Both `.Morphism()` and `.Vertex()` create path objects, which provide the following traversal methods.
@@ -42,17 +50,23 @@ type Step = { type: string; steps?: Step[] };
  * ```
  */
 class Path {
+  /** @todo make path to accept type variable of fields */
   private graph: Graph;
-  private step: Step;
-  constructor(graph: Graph, step: Step) {
+  private steps: Step[];
+  constructor(graph: Graph, steps: Step[]) {
     this.graph = graph;
-    this.step = step;
+    this.steps = steps;
   }
-  private execute(): Promise<Object[]> {
-    return Promise.resolve([]);
+  private async execute(): Promise<Object[]> {
+    const res = await this.graph.client.query(toString(this.steps));
+    const { result, error } = await res.json();
+    if (error) {
+      throw new Error(error);
+    }
+    return result;
   }
   private addStep(step: Step) {
-    this.step.steps.push(step);
+    this.steps.push(step);
   }
   private chainStep<S extends Step>(step: S): Path {
     this.addStep(step);
@@ -61,6 +75,7 @@ class Path {
   /** Execute the query and adds the results, with all tags, as a string-to-string (tag to node) map in the output set, one for each path that a traversal could take. */
   all() {
     this.addStep({ type: "all" });
+    return this.execute();
   }
   /** Alias for intersect.
    */
@@ -144,7 +159,8 @@ class Path {
   }
   /** The same as All, but limited to the first N unique nodes at the end of the path, and each of their possible traversals. */
   getLimit(limit: number) {
-    this.limit(limit);
+    const step = { type: "getLimit", limit };
+    this.addStep(step);
     return this.execute();
   }
   /** Filter all paths which are, at this point, on the subject for the given predicate and object,
@@ -202,7 +218,7 @@ class Path {
   }
   /** Limit a number of nodes for current path. */
   limit(limit: number) {
-    return this.chainStep({ type: "limit" });
+    return this.chainStep({ type: "limit", limit });
   }
   /** Alias for Union. */
   or(path: Path) {
@@ -292,50 +308,47 @@ class Path {
   }
 }
 
-type EmitStep = Step & {
-  value: Value;
-};
-
-export default class Graph {
+export class Graph {
   client: CayleyClient;
-  _steps: Step[];
+  private steps: Step[];
   constructor(client: CayleyClient) {
     this.client = client;
-    this._steps = [];
+    this.steps = [];
   }
   /** A shorthand for Vertex. */
-  V(...nodeId: string[]) {
-    return this.Vertex(...nodeId);
+  V(...nodeIds: string[]) {
+    return this.Vertex(...nodeIds);
   }
   /** A shorthand for Morphism */
   M() {
     return this.Morphism();
   }
   /** Start a query path at the given vertex/vertices. No ids means "all vertices". */
-  Vertex(...nodeId: string[]) {
-    return new Path(this, { type: "Vertex", steps: [] });
+  Vertex(...nodeIds: string[]) {
+    const step: Step & { nodeIds: string[] } = { type: "Vertex", nodeIds };
+    return new Path(this, [step]);
   }
   /** Create a morphism path object. Unqueryable on it's own, defines one end of the path.
   Saving these to variables with */
   Morphism() {
-    return new Path(this, { type: "Morphism", steps: [] });
+    return new Path(this, [{ type: "Morphism" }]);
   }
   /** Load all namespaces saved to graph. */
   loadNamespaces() {
-    this._steps.push({ type: "loadNamespaces" });
+    this.steps.push({ type: "loadNamespaces" });
   }
   /** Register all default namespaces for automatic IRI resolution. */
   addDefaultNamespaces() {
-    this._steps.push({ type: "addDefaultNamespaces" });
+    this.steps.push({ type: "addDefaultNamespaces" });
   }
   /** Associate prefix with a given IRI namespace. */
   addNamespace() {
-    this._steps.push({ type: "addNamespaces" });
+    this.steps.push({ type: "addNamespaces" });
   }
   /** Add data programmatically to the JSON result list. Can be any JSON type. */
   emit(value: Value) {
-    const step: EmitStep = { type: "emit", value };
-    this._steps.push(step);
+    const step: Step & { value: Value } = { type: "emit", value };
+    this.steps.push(step);
   }
   /** Create an IRI values from a given string. */
   IRI(iri: string) {

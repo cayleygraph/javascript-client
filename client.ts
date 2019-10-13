@@ -1,9 +1,10 @@
-import Graph from "./query-builder";
-import * as N3 from "./n3";
-import "isomorphic-fetch";
 import NamedNode = require("@rdfjs/data-model/lib/named-node");
 import BlankNode = require("@rdfjs/data-model/lib/blank-node");
 import Literal = require("@rdfjs/data-model/lib/literal");
+import * as N3 from "./n3";
+import { Graph } from "./query-builder";
+import "isomorphic-fetch";
+
 export { NamedNode, BlankNode, Literal };
 
 type Identifier = NamedNode | BlankNode;
@@ -93,10 +94,13 @@ export default class CayleyClient {
   ): Promise<Response> {
     return fetch(
       `${this.url}/api/v2/query?${new URLSearchParams({
-        query,
         lang: language,
         limit: String(limit)
-      })}`
+      })}`,
+      {
+        method: "POST",
+        body: query
+      }
     );
   }
 }

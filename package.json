@@ -6,7 +6,7 @@
   "main": "client.js",
   "scripts": {
     "build": "tsc",
-    "test": "ts-mocha test/*.ts"
+    "test": "npm run build && mocha"
   },
   "author": "",
   "license": "ISC",
@@ -17,7 +17,6 @@
   "devDependencies": {
     "@types/mocha": "^5.2.7",
     "mocha": "^6.2.1",
-    "ts-mocha": "^6.0.0",
     "typescript": "^3.6.4"
   }
 }
