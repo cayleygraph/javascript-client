@@ -7,12 +7,22 @@ class Value {
   }
 }
 
-type Step = { type: string };
+type Step = { type: string; args?: any[] };
+
+const createCallString = (name, args) =>
+  `${name}(${args ? args.map(argToString).join() : ""})`;
+
+const argToString = arg => {
+  if (arg.function) {
+    return createCallString(arg.function, arg.args);
+  }
+  return JSON.stringify(arg);
+};
 
 function toString(steps: Step[]) {
   let string = "g";
   for (const step of steps) {
-    string += `.${step.type}()`;
+    string += `.${createCallString(step.type, step.args)}`;
   }
   return string;
 }
@@ -80,7 +90,7 @@ class Path {
   /** Alias for intersect.
    */
   and(path: Path) {
-    return this.chainStep({ type: "and", path });
+    return this.chainStep({ type: "and", args: [path] });
   }
   /** Alias for tag.
    */
@@ -93,15 +103,15 @@ class Path {
   back(tag?: string) {
     return this.chainStep({
       type: "back",
-      tag
+      args: [tag]
     });
   }
   /** Follow the predicate in either direction. Same as out or in.
    */
-  both(path: Path, ...tags) {
+  both(path: Path, ...tags: string[]) {
     return this.chainStep({
       type: "both",
-      tags
+      args: [path, ...tags]
     });
   }
   /** Return a number of results and returns it as a value. */
@@ -115,26 +125,26 @@ class Path {
   }
   /** Removes all paths which match query from current path. In a set-theoretic sense, this is (A - B). While `g.V().Except(path)` to achieve `U - B = !B` is supported, it's often very slow. */
   except(path: Path) {
-    return this.chainStep({ type: "except", path });
+    return this.chainStep({ type: "except", args: [path] });
   }
   /** Apply constraints to a set of nodes. Can be used to filter values by range or match strings. */
-  filter(...args: any) {
-    return this.chainStep({ type: "filter", args });
+  filter(filter: Filter) {
+    return this.chainStep({ type: "filter", args: [filter] });
   }
   /** The way to use a path prepared with Morphism. Applies the path chain on the morphism object to the current path.
    * Starts as if at the g.M() and follows through the morphism path. */
   follow(path: Path) {
-    return this.chainStep({ type: "follow", path });
+    return this.chainStep({ type: "follow", args: [path] });
   }
   /** The same as follow but follows the chain in the reverse direction. Flips "In" and "Out" where appropriate,
   the net result being a virtual predicate followed in the reverse direction. Starts at the end of the morphism and follows it backwards (with appropriate flipped directions) to the g.M() location. */
   followR(path: Path) {
-    return this.chainStep({ type: "followR", path });
+    return this.chainStep({ type: "followR", args: [path] });
     return this;
   }
   /** The same as follow but follows the chain recursively. Starts as if at the g.M() and follows through the morphism path multiple times, returning all nodes encountered. */
   followRecursive(path: Path) {
-    return this.chainStep({ type: "followRecursive", path });
+    return this.chainStep({ type: "followRecursive", args: [path] });
   }
   /** Call callback(data) for each result, where data is the tag-to-string map as in All case.
    */
@@ -159,8 +169,7 @@ class Path {
   }
   /** The same as All, but limited to the first N unique nodes at the end of the path, and each of their possible traversals. */
   getLimit(limit: number) {
-    const step = { type: "getLimit", limit };
-    this.addStep(step);
+    this.addStep({ type: "getLimit", args: [limit] });
     return this.execute();
   }
   /** Filter all paths which are, at this point, on the subject for the given predicate and object,
@@ -168,11 +177,11 @@ class Path {
 /
     */
   has(predicate: string, object: string) {
-    return this.chainStep({ type: "has", predicate, object });
+    return this.chainStep({ type: "has", args: [predicate, object] });
   }
   /** The same as Has, but sets constraint in reverse direction. */
   hasR(predicate: string, object: string) {
-    return this.chainStep({ type: "hasR", predicate, object });
+    return this.chainStep({ type: "hasR", args: [predicate, object] });
   }
   /** The inverse of out. Starting with the nodes in `path` on the object, follow the quads with predicates defined by `predicatePath` to their subjects.
    * * null or undefined: All predicates pointing into this node
@@ -184,7 +193,7 @@ class Path {
    * * a list of strings: Multiple tags to use as keys to save the predicate used to the output set.
    */
   in(predicatePath?: Path, ...tags: string[]) {
-    return this.chainStep({ type: "in", predicatePath, tags });
+    return this.chainStep({ type: "in", args: [predicatePath, ...tags] });
   }
   /** Get the list of predicates that are pointing in to a node. */
   inPredicates() {
@@ -192,12 +201,12 @@ class Path {
   }
   /** Filter all paths by the result of another query path. This is essentially a join where, at the stage of each path, a node is shared. */
   intersect(path: Path) {
-    return this.chainStep({ type: "intersect", path });
+    return this.chainStep({ type: "intersect", args: [path] });
   }
   /** Filter all paths to ones which, at this point, are on the given node.
    */
   is(node: string, ...nodes: string[]) {
-    return this.chainStep({ type: "is", nodes: [node, ...nodes] });
+    return this.chainStep({ type: "is", args: [node, ...nodes] });
   }
   /** Set (or remove) the subgraph context to consider in the following traversals.
    * Affects all in(), out(), and both() calls that follow it. The default LabelContext is null (all subgraphs).
@@ -210,7 +219,7 @@ class Path {
    * * a list of strings: Multiple tags to use as keys to save the label used to the output set.
    */
   labelContext(labelPath: Path, ...tags: string[]) {
-    return this.chainStep({ type: "labelContext", labelPath, tags });
+    return this.chainStep({ type: "labelContext", args: [labelPath, ...tags] });
   }
   /** Get the list of inbound and outbound quad labels */
   labels() {
@@ -218,7 +227,7 @@ class Path {
   }
   /** Limit a number of nodes for current path. */
   limit(limit: number) {
-    return this.chainStep({ type: "limit", limit });
+    return this.chainStep({ type: "limit", args: [limit] });
   }
   /** Alias for Union. */
   or(path: Path) {
@@ -233,8 +242,10 @@ class Path {
    * * a string: A single tag to add the predicate used to the output set.
    * * a list of strings: Multiple tags to use as keys to save the predicate used to the output set.
    */
-  out(predicatePath?: Path, ...tags: string[]) {
-    return this.chainStep({ type: "out", predicatePath, tags });
+  out(predicate?: Call, ...tags: string[]): Path;
+  out(predicatePath?: Path, ...tags: string[]): Path;
+  out(predicateOrPath?: Call | Path, ...tags: string[]) {
+    return this.chainStep({ type: "out", args: [predicateOrPath, ...tags] });
   }
   /** Get the list of predicates that are pointing out from a node. */
   outPredicates() {
@@ -243,38 +254,38 @@ class Path {
   /** Save the object of all quads with predicate into tag, without traversal.
    */
   save(predicate: string, tag: string) {
-    return this.chainStep({ type: "save", predicate, tag });
+    return this.chainStep({ type: "save", args: [predicate, tag] });
   }
   /** The same as save, but returns empty tags if predicate does not exists. */
   saveOpt(predicate: string, tag: string) {
-    return this.chainStep({ type: "saveOpt", predicate, tag });
+    return this.chainStep({ type: "saveOpt", args: [predicate, tag] });
   }
   /** The same as saveOpt, but tags values via reverse predicate. */
   saveOptR(predicate: string, tag: string) {
-    return this.chainStep({ type: "saveOptR", predicate, tag });
+    return this.chainStep({ type: "saveOptR", args: [predicate, tag] });
   }
   /** The same as save, but tags values via reverse predicate. */
   saveR(predicate: string, tag: string) {
-    return this.chainStep({ type: "saveR", predicate, tag });
+    return this.chainStep({ type: "saveR", args: [predicate, tag] });
   }
   /** Tag the list of predicates that are pointing in to a node. */
   saveInPredicates(tag: string) {
-    return this.chainStep({ type: "saveInPredicates", tag });
+    return this.chainStep({ type: "saveInPredicates", args: [tag] });
   }
   /** Tag the list of predicates that are pointing out from a node. */
   saveOutPredicates(tag: string) {
-    return this.chainStep({ type: "saveOutPredicates", tag });
+    return this.chainStep({ type: "saveOutPredicates", args: [tag] });
   }
   /** Skip a number of nodes for current path.
    */
   skip(offset: number) {
-    return this.chainStep({ type: "skip", offset });
+    return this.chainStep({ type: "skip", args: [offset] });
   }
   /** Save a list of nodes to a given tag. In order to save your work or learn more about how a path got to the end, we have tags.
   The simplest thing to do is to add a tag anywhere you'd like to put each node in the result set.
 /reached "Tag" */
   tag(...tags: string[]) {
-    return this.chainStep({ type: "tag", tags });
+    return this.chainStep({ type: "tag", args: tags });
   }
   /**
    * The same as toArray, but instead of a list of top-level nodes, returns an Array of tag-to-string dictionaries, much as All would, except inside the JS environment.
@@ -300,7 +311,7 @@ class Path {
   }
   /** Return the combined paths of the two queries. Notice that it's per-path, not per-node. Once again, if multiple paths reach the same destination, they might have had different ways of getting there (and different tags). See also: `Path.prototype.tag()` */
   union(path: Path) {
-    return this.chainStep({ type: "union", path });
+    return this.chainStep({ type: "union", args: [path] });
   }
   /** Remove duplicate values from the path. */
   unique() {
@@ -351,22 +362,20 @@ export class Graph {
     this.steps.push(step);
   }
   /** Create an IRI values from a given string. */
-  IRI(iri: string) {
-    return { type: "IRI", iri };
+  IRI(iri: string): Call {
+    return { function: "g.IRI", args: [iri] };
   }
 }
 
-class RegexFilter {
-  /** @todo replace with RegExp */
-  expression: string;
-  includeIRIs: boolean;
-  constructor(expression: string, includeIRIs: boolean) {
-    this.expression = expression;
-    this.includeIRIs = includeIRIs;
-  }
-}
+type Call = { function: string; args: any[] };
+
+type Filter = Call;
 
 /** Filter by match a regular expression ([syntax](https://github.com/google/re2/wiki/Syntax)). By default works only on literals unless includeIRIs is set to `true`. */
-export function regex(expression: string, includeIRIs?: boolean) {
-  return new RegexFilter(expression, includeIRIs);
+export function regex(expression: string, includeIRIs?: boolean): Filter {
+  return { function: "regex", args: [expression, includeIRIs] };
+}
+
+export function like(pattern: string) {
+  return { function: "like", args: [pattern] };
 }

@@ -15,4 +15,13 @@ describe("Query Builder", () => {
     const result = g.V().getLimit(-1);
     assert(result);
   });
+  it("g.V().out(g.IRI('likes')).getLimit(-1)", () => {
+    const client = new CayleyClient();
+    const { g } = client;
+    const result = g
+      .V()
+      .out(g.IRI("likes"))
+      .getLimit(-1);
+    assert(result);
+  });
 });
