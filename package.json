@@ -1,0 +1,23 @@
+{
+  "name": "@cayleygraph/client",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "client.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "ts-mocha test/*.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@rdfjs/data-model": "^1.1.2",
+    "isomorphic-fetch": "^2.2.1"
+  },
+  "devDependencies": {
+    "@types/mocha": "^5.2.7",
+    "mocha": "^6.2.1",
+    "ts-mocha": "^6.0.0",
+    "typescript": "^3.6.4"
+  }
+}
