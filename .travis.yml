@@ -4,3 +4,4 @@ before_install:
   - curl https://raw.githubusercontent.com/cayleygraph/cayley/master/data/testdata.nq > data.nq
   - docker run -d -p 64210:64210 -v $PWD/data.nq:/data.nq cayleygraph/cayley:dev cayley http -i /data.nq
 language: node_js
+node_js: node
