@@ -2,6 +2,8 @@
 
 JavaScript client for [Cayley](github.com/cayleygraph/cayley)
 
+### [Documentation](https://cayleygraph.github.io/cayley-js/)
+
 ### Installation
 
 ```bash
