@@ -14,7 +14,8 @@
   "dependencies": {
     "@rdfjs/data-model": "^1.1.2",
     "isomorphic-fetch": "^2.2.1",
-    "@types/isomorphic-fetch": "0.0.35"
+    "@types/isomorphic-fetch": "0.0.35",
+    "@types/node": "^12.7.12"
   },
   "devDependencies": {
     "@types/mocha": "^5.2.7",
