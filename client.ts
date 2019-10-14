@@ -67,14 +67,22 @@ export default class CayleyClient {
     });
   }
 
-  write(text: string, format: Format = Format.JsonLD): Promise<Response> {
-    return fetch(`${this.url}/api/v2/write`, {
+  async write(text: string, format: Format = Format.JsonLD): Promise<string> {
+    const res = await fetch(`${this.url}/api/v2/write`, {
       method: "POST",
       headers: {
         "Content-Type": format
       },
       body: text
     });
+    if (res.status !== 200) {
+      throw new Error(await res.text());
+    }
+    const { error, result } = await res.json();
+    if (error) {
+      throw new Error(error);
+    }
+    return result;
   }
 
   delete(text: string, format: Format = Format.JsonLD): Promise<Response> {

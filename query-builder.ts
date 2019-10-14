@@ -9,24 +9,6 @@ class Value {
 
 type Step = { type: string; args?: any[] };
 
-const createCallString = (name, args) =>
-  `${name}(${args ? args.map(argToString).join() : ""})`;
-
-const argToString = arg => {
-  if (arg.function) {
-    return createCallString(arg.function, arg.args);
-  }
-  return JSON.stringify(arg);
-};
-
-function toString(steps: Step[]) {
-  let string = "g";
-  for (const step of steps) {
-    string += `.${createCallString(step.type, step.args)}`;
-  }
-  return string;
-}
-
 /**
  * Both `.Morphism()` and `.Vertex()` create path objects, which provide the following traversal methods.
  * Note that `.Vertex()` returns a query object, which is a subclass of path object.
@@ -62,18 +44,10 @@ function toString(steps: Step[]) {
 class Path {
   /** @todo make path to accept type variable of fields */
   private graph: Graph;
-  private steps: Step[];
+  steps: Step[];
   constructor(graph: Graph, steps: Step[]) {
     this.graph = graph;
     this.steps = steps;
-  }
-  private async execute(): Promise<Object[]> {
-    const res = await this.graph.client.query(toString(this.steps));
-    const { result, error } = await res.json();
-    if (error) {
-      throw new Error(error);
-    }
-    return result;
   }
   private addStep(step: Step) {
     this.steps.push(step);
@@ -81,6 +55,9 @@ class Path {
   private chainStep<S extends Step>(step: S): Path {
     this.addStep(step);
     return this;
+  }
+  private execute() {
+    return this.graph.execute(this.steps);
   }
   /** Execute the query and adds the results, with all tags, as a string-to-string (tag to node) map in the output set, one for each path that a traversal could take. */
   all() {
@@ -326,6 +303,34 @@ export class Graph {
     this.client = client;
     this.steps = [];
   }
+  private static createCallString(name: string, args): string {
+    return `${name}(${args ? args.map(Graph.argToString).join() : ""})`;
+  }
+  private static argToString(arg): string {
+    if (arg.function) {
+      return Graph.createCallString(arg.function, arg.args);
+    }
+    if (arg instanceof Value) {
+      return Graph.createQueryString(arg.path.steps);
+    }
+    return JSON.stringify(arg);
+  }
+  private static createQueryString(steps: Step[]): string {
+    return steps.reduce(
+      (acc, step) => `${acc}.${Graph.createCallString(step.type, step.args)}`,
+      "g"
+    );
+  }
+  async execute(steps: Step[]): Promise<Object[]> {
+    /** @todo global calls */
+    const query = Graph.createQueryString(steps);
+    const res = await this.client.query(query);
+    const { result, error } = await res.json();
+    if (error) {
+      throw new Error(error);
+    }
+    return result;
+  }
   /** A shorthand for Vertex. */
   V(...nodeIds: string[]) {
     return this.Vertex(...nodeIds);
@@ -358,8 +363,8 @@ export class Graph {
   }
   /** Add data programmatically to the JSON result list. Can be any JSON type. */
   emit(value: Value) {
-    const step: Step & { value: Value } = { type: "emit", value };
-    this.steps.push(step);
+    const step = { type: "emit", args: [value] };
+    return this.execute([step]);
   }
   /** Create an IRI values from a given string. */
   IRI(iri: string): Call {
