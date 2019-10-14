@@ -321,7 +321,7 @@ export class Graph {
       "g"
     );
   }
-  async execute(steps: Step[]): Promise<Object[]> {
+  async execute(steps: Step[]): Promise<any[]> {
     /** @todo global calls */
     const query = Graph.createQueryString(steps);
     const res = await this.client.query(query);

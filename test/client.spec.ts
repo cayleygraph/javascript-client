@@ -43,22 +43,12 @@ describe("Query Builder", () => {
     const client = new CayleyClient();
     const { g } = client;
     const result = await g.V().getLimit(-1);
-    assert.deepStrictEqual(result, [
-      { id: "<alice>" },
-      { id: "<follows>" },
-      { id: "<bob>" },
-      { id: "<fred>" },
-      { id: "<status>" },
-      { id: "cool_person" },
-      { id: "<dani>" },
-      { id: "<charlie>" },
-      { id: "<greg>" },
-      { id: "<emily>" },
-      { id: "<predicates>" },
-      { id: "<are>" },
-      { id: "smart_person" },
-      { id: "<smart_graph>" }
-    ]);
+    assert(result);
+    assert(result.length);
+    for (const item of result) {
+      assert.deepStrictEqual(Object.keys(item), ["id"]);
+      assert(typeof item["id"] === "string");
+    }
   });
   it("g.V().out(g.IRI('follows')).getLimit(-1)", async () => {
     const client = new CayleyClient();
@@ -67,21 +57,25 @@ describe("Query Builder", () => {
       .V()
       .out(g.IRI("follows"))
       .getLimit(-1);
-    assert.deepStrictEqual(result, [
-      { id: "<bob>" },
-      { id: "<fred>" },
-      { id: "<bob>" },
-      { id: "<bob>" },
-      { id: "<dani>" },
-      { id: "<greg>" },
-      { id: "<fred>" },
-      { id: "<greg>" }
-    ]);
+    assert(result);
+    assert(result.length);
+    for (const item of result) {
+      assert.deepStrictEqual(Object.keys(item), ["id"]);
+      assert(typeof item["id"] === "string");
+    }
   });
   it("g.emit(g.V().toArray())", async () => {
     const client = new CayleyClient();
     const { g } = client;
     const result = await g.emit(g.V().toArray());
+    assert(result);
+    assert(result.length);
+    for (const item of result) {
+      assert(Array.isArray(item));
+      for (const subItem of item) {
+        assert(typeof subItem === "string");
+      }
+    }
     assert.deepStrictEqual(result, [
       [
         "<alice>",
