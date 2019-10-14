@@ -36,8 +36,12 @@ export default class CayleyClient {
   }
 
   /**
-   *
-   * @param {Format} [format]
+   * Reads all quads from the database
+   * @param subject Subjects to filter quads by
+   * @param predicate Predicates to filter quads by
+   * @param object Objects to filter quads by
+   * @param label Labels to filter quads by
+   * @param format Data encoder to use for response.
    * @returns {Promise.<Response>}
    */
   async read(
@@ -62,18 +66,26 @@ export default class CayleyClient {
     }
     return fetch(`${this.url}/api/v2/read?${searchParams}`, {
       headers: {
-        Accept: Format.JsonLD
+        Accept: format
       }
     });
   }
 
-  async write(text: string, format: Format = Format.JsonLD): Promise<string> {
+  /**
+   * Writes quads to the database
+   * @param content Content in format specified
+   * @param format Data decoder to use for request
+   */
+  async write(
+    content: string,
+    format: Format = Format.JsonLD
+  ): Promise<string> {
     const res = await fetch(`${this.url}/api/v2/write`, {
       method: "POST",
       headers: {
         "Content-Type": format
       },
-      body: text
+      body: content
     });
     if (res.status !== 200) {
       throw new Error(await res.text());
@@ -85,16 +97,27 @@ export default class CayleyClient {
     return result;
   }
 
-  delete(text: string, format: Format = Format.JsonLD): Promise<Response> {
+  /**
+   * Removes a node add all associated quads
+   * @param content Content in format specified
+   * @param format Data decoder to use for request
+   */
+  delete(content: string, format: Format = Format.JsonLD): Promise<Response> {
     return fetch(`${this.url}/api/v2/delete`, {
       method: "POST",
       headers: {
         "Content-Type": format
       },
-      body: text
+      body: content
     });
   }
 
+  /**
+   * Query the graph
+   * @param query Query text
+   * @param language Query language to use
+   * @param limit Globally limit the number of results
+   */
   query(
     query: string,
     language: Language = Language.Gizmo,

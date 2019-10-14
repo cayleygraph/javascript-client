@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc --lib ES2015 --lib dom",
     "test": "npm run build && mocha",
-    "docs": "typedoc"
+    "docs": "typedoc --module commonjs"
   },
   "author": "",
   "license": "ISC",

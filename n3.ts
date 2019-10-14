@@ -16,10 +16,6 @@ export function serializeTerm(term: NamedNode | BlankNode | Literal): string {
       return `"${term.value}"`;
     }
   } else {
-    throw new Error(
-      `Term ${term} is of unexpected type ${
-        term ? term.constructor.name : typeof term
-      }`
-    );
+    throw new Error(`Term ${term} is of unexpected type`);
   }
 }
