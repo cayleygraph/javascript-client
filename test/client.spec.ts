@@ -76,23 +76,5 @@ describe("Query Builder", () => {
         assert(typeof subItem === "string");
       }
     }
-    assert.deepStrictEqual(result, [
-      [
-        "<alice>",
-        "<follows>",
-        "<bob>",
-        "<fred>",
-        "<status>",
-        "cool_person",
-        "<dani>",
-        "<charlie>",
-        "<greg>",
-        "<emily>",
-        "<predicates>",
-        "<are>",
-        "smart_person",
-        "<smart_graph>"
-      ]
-    ]);
   });
 });
