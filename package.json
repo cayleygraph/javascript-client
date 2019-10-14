@@ -6,17 +6,20 @@
   "main": "client.js",
   "scripts": {
     "build": "tsc --lib ES2015",
-    "test": "npm run build && mocha"
+    "test": "npm run build && mocha",
+    "docs": "typedoc"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@rdfjs/data-model": "^1.1.2",
-    "isomorphic-fetch": "^2.2.1"
+    "isomorphic-fetch": "^2.2.1",
+    "@types/isomorphic-fetch": "0.0.35"
   },
   "devDependencies": {
     "@types/mocha": "^5.2.7",
     "mocha": "^6.2.1",
+    "typedoc": "^0.15.0",
     "typescript": "^3.6.4"
   }
 }
