@@ -5,7 +5,7 @@ import * as N3 from "./n3";
 import { Graph } from "./query-builder";
 import "isomorphic-fetch";
 
-export { NamedNode, BlankNode, Literal };
+export { NamedNode, BlankNode, Literal, Graph };
 
 type Identifier = NamedNode | BlankNode;
 
