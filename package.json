@@ -1,6 +1,7 @@
 {
   "name": "@cayleygraph/cayley",
   "type": "module",
+  "private": false,
   "version": "1.0.0",
   "description": "JavaScript client for Cayley",
   "main": "client.js",
