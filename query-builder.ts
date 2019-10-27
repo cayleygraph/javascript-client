@@ -1,4 +1,4 @@
-import CayleyClient from "./client";
+import Client from "./cayley";
 
 class Value {
   path: Path;
@@ -297,9 +297,9 @@ class Path {
 }
 
 export class Graph {
-  client: CayleyClient;
+  client: Client;
   private steps: Step[];
-  constructor(client: CayleyClient) {
+  constructor(client: Client) {
     this.client = client;
     this.steps = [];
   }

@@ -13,11 +13,11 @@ npm install @cayleygraph/client
 #### Log 10 nodes from the graph
 
 ```javascript
-import CayleyClient from "@cayleygraph/client";
+import * as cayley from "@cayleygraph/cayley";
 
-const client = new CayleyClient();
+const client = new cayley.Client();
 
 for (node of client.g.V().getLimit(10)) {
-  console.log(node)
-};
+  console.log(node);
+}
 ```

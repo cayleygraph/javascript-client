@@ -1,15 +1,15 @@
 import assert = require("assert");
-import CayleyClient, { NamedNode, Format, Graph } from "../client";
+import Client, { NamedNode, Format, Graph } from "../cayley";
 
 describe("Read", () => {
   it("simple", async () => {
-    const client = new CayleyClient();
+    const client = new Client();
     const response = await client.read(new NamedNode("alice"));
     assert(response.status === 200);
     await response.json();
   });
   it("turtle", async () => {
-    const client = new CayleyClient();
+    const client = new Client();
     const response = await client.read(
       new NamedNode("alice"),
       null,
@@ -24,7 +24,7 @@ describe("Read", () => {
 
 describe("Write", () => {
   it("writes", async () => {
-    const client = new CayleyClient();
+    const client = new Client();
     const response = await client.write(
       `[{"@id":"alice","likes":[{"@id":"bob"}]}]`
     );
@@ -91,7 +91,7 @@ const testCases: TestCase[] = [
 describe("Query Builder", () => {
   for (const testCase of testCases) {
     it(testCase.name, async () => {
-      const client = new CayleyClient();
+      const client = new Client();
       const { g } = client;
       const result = await testCase.query(g);
       testCase.validate(result);

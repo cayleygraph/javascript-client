@@ -21,7 +21,7 @@ export enum Format {
   JsonLD = "application/ld+json"
 }
 
-export default class CayleyClient {
+export default class Client {
   /** This is the only special object in the environment, generates the query objects.
    * Under the hood, they're simple objects that get compiled to a Go iterator tree when executed. */
   graph: Graph;

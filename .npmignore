@@ -103,11 +103,16 @@ dist
 # TernJS port file
 .tern-port
 
-# Declaration files
-*.d.ts
+# Source TypeScript files
+*.ts
+!*.d.ts
 
-# Compiled JavaScript files
-*.js
+# Test files
+test/
+
+# Configuration
+tsconfig.json
+.travis.yml
 
 # Generated documentation
 docs/

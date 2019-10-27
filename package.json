@@ -1,16 +1,18 @@
 {
-  "name": "@cayleygraph/client",
+  "name": "@cayleygraph/cayley",
   "type": "module",
   "version": "1.0.0",
-  "description": "",
+  "description": "JavaScript client for Cayley",
   "main": "client.js",
+  "types": "client.d.ts",
   "scripts": {
     "build": "tsc --lib ES2015 --lib dom",
     "test": "npm run build && mocha",
-    "docs": "typedoc --module commonjs"
+    "docs": "typedoc --module commonjs",
+    "prepare": "npm run build & npm run build -- --declaration"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Iddan Aaronsohn",
+  "license": "Apache-2.0",
   "dependencies": {
     "@rdfjs/data-model": "^1.1.2",
     "@types/node": "^12.7.12",
@@ -21,5 +23,24 @@
     "mocha": "^6.2.1",
     "typedoc": "^0.15.0",
     "typescript": "^3.6.4"
-  }
+  },
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cayleygraph/javascript-client.git"
+  },
+  "keywords": [
+    "linked-data",
+    "data",
+    "database",
+    "json-ld",
+    "cayley"
+  ],
+  "bugs": {
+    "url": "https://github.com/cayleygraph/javascript-client/issues"
+  },
+  "homepage": "https://github.com/cayleygraph/javascript-client#readme"
 }
