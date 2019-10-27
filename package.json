@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsc --lib ES2015 --lib dom",
     "test": "npm run build && mocha",
-    "docs": "typedoc --module commonjs --mode modules --toc cayley --excludeNotExported --excludeExternals --excludePrivate --externalPattern node_modules",
+    "docs": "typedoc --module commonjs --mode file --excludeExternals --excludePrivate --exclude n3.ts,**/*.spec.ts --toc Format,Language,Client,Graph,Path",
     "prepare": "npm run build & npm run build -- --declaration"
   },
   "author": "Iddan Aaronsohn",
