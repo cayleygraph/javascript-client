@@ -1,4 +1,4 @@
-# JavaScript Client for [Cayley](github.com/cayleygraph/cayley)
+# JavaScript Client for [Cayley](https://github.com/cayleygraph/cayley)
 
 ### [Documentation](https://cayleygraph.github.io/javascript-client/)
 
