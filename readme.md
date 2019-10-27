@@ -1,8 +1,6 @@
-# cayley-js
+# JavaScript Client for [Cayley](github.com/cayleygraph/cayley)
 
-JavaScript client for [Cayley](github.com/cayleygraph/cayley)
-
-### [Documentation](https://cayleygraph.github.io/cayley-js/)
+### [Documentation](https://cayleygraph.github.io/javascript-client/)
 
 ### Installation
 
