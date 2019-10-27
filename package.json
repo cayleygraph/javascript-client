@@ -4,12 +4,12 @@
   "private": false,
   "version": "1.0.0",
   "description": "JavaScript client for Cayley",
-  "main": "client.js",
-  "types": "client.d.ts",
+  "main": "cayley.js",
+  "types": "cayley.d.ts",
   "scripts": {
     "build": "tsc --lib ES2015 --lib dom",
     "test": "npm run build && mocha",
-    "docs": "typedoc --module commonjs",
+    "docs": "typedoc --module commonjs --mode modules --toc cayley --excludeNotExported --excludeExternals --excludePrivate --externalPattern node_modules",
     "prepare": "npm run build & npm run build -- --declaration"
   },
   "author": "Iddan Aaronsohn",
