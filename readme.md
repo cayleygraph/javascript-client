@@ -5,7 +5,7 @@
 ### Installation
 
 ```bash
-npm install @cayleygraph/client
+npm install @cayleygraph/cayley
 ```
 
 ### Usage
