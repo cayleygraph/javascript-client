@@ -321,15 +321,18 @@ export class Graph {
   ): string {
     return `${expression}.${Graph.createCallString(step.type, step.args)}`;
   }
+  private static Expression = "graph";
   private static createGraphCallChainString(steps: Step[]): string {
-    return steps.reduce(Graph.createMethodCallString, "g");
+    return steps.reduce(Graph.createMethodCallString, Graph.Expression);
   }
   async execute(steps: Step[]): Promise<any[]> {
-    /** @todo global calls */
-    const globalCalls = this.steps.map(
-      step => Graph.createMethodCallString("g", step) + ";"
+    const globalCalls = this.steps.map(step =>
+      Graph.createMethodCallString(Graph.Expression, step)
     );
-    const query = globalCalls + Graph.createGraphCallChainString(steps);
+    const query = [
+      ...globalCalls,
+      Graph.createGraphCallChainString(steps)
+    ].join(";");
     const res = await this.client.query(query);
     const { result, error } = await res.json();
     if (error) {
@@ -364,8 +367,8 @@ export class Graph {
     this.steps.push({ type: "addDefaultNamespaces" });
   }
   /** Associate prefix with a given IRI namespace. */
-  addNamespace() {
-    this.steps.push({ type: "addNamespaces" });
+  addNamespace(pref: string, ns: string) {
+    this.steps.push({ type: "addNamespace", args: [pref, ns] });
   }
   /** Add data programmatically to the JSON result list. Can be any JSON type. */
   emit(value: Value) {
