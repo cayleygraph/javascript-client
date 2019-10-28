@@ -311,19 +311,25 @@ export class Graph {
       return Graph.createCallString(arg.function, arg.args);
     }
     if (arg instanceof Value) {
-      return Graph.createQueryString(arg.path.steps);
+      return Graph.createGraphCallChainString(arg.path.steps);
     }
     return JSON.stringify(arg);
   }
-  private static createQueryString(steps: Step[]): string {
-    return steps.reduce(
-      (acc, step) => `${acc}.${Graph.createCallString(step.type, step.args)}`,
-      "g"
-    );
+  private static createMethodCallString(
+    expression: string,
+    step: Step
+  ): string {
+    return `${expression}.${Graph.createCallString(step.type, step.args)}`;
+  }
+  private static createGraphCallChainString(steps: Step[]): string {
+    return steps.reduce(Graph.createMethodCallString, "g");
   }
   async execute(steps: Step[]): Promise<any[]> {
     /** @todo global calls */
-    const query = Graph.createQueryString(steps);
+    const globalCalls = this.steps.map(
+      step => Graph.createMethodCallString("g", step) + ";"
+    );
+    const query = globalCalls + Graph.createGraphCallChainString(steps);
     const res = await this.client.query(query);
     const { result, error } = await res.json();
     if (error) {
