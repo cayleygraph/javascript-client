@@ -78,7 +78,7 @@ class Path {
    * If still valid, a path will now consider their vertex to be the same one as the previously tagged one, with the added constraint that it was valid all the way here. Useful for traversing back in queries and taking another route for things that have matched so far.
    */
   back(tag?: string) {
-    const args = tag === undefined ? [tag] : [];
+    const args = tag !== undefined ? [tag] : [];
     return this.chainStep({
       type: "back",
       args
@@ -171,7 +171,7 @@ class Path {
    * * a list of strings: Multiple tags to use as keys to save the predicate used to the output set.
    */
   in(predicatePath?: Path, ...tags: string[]) {
-    const args = predicatePath ? [predicatePath, ...tags] : tags;
+    const args = predicatePath !== undefined ? [predicatePath, ...tags] : tags;
     return this.chainStep({ type: "in", args });
   }
   /** Get the list of predicates that are pointing in to a node. */
@@ -224,7 +224,8 @@ class Path {
   out(predicate?: Call, ...tags: string[]): Path;
   out(predicatePath?: Path, ...tags: string[]): Path;
   out(predicateOrPath?: Call | Path, ...tags: string[]) {
-    const args = predicateOrPath ? [predicateOrPath, ...tags] : tags;
+    const args =
+      predicateOrPath !== undefined ? [predicateOrPath, ...tags] : tags;
     return this.chainStep({ type: "out", args });
   }
   /** Get the list of predicates that are pointing out from a node. */
@@ -390,7 +391,8 @@ type Filter = Call;
 
 /** Filter by match a regular expression ([syntax](https://github.com/google/re2/wiki/Syntax)). By default works only on literals unless includeIRIs is set to `true`. */
 export function regex(expression: string, includeIRIs?: boolean): Filter {
-  const args = includeIRIs ? [expression] : [expression, includeIRIs];
+  const args =
+    includeIRIs === undefined ? [expression] : [expression, includeIRIs];
   return { function: "regex", args };
 }
 
