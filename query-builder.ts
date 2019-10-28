@@ -221,9 +221,7 @@ class Path {
    * * a string: A single tag to add the predicate used to the output set.
    * * a list of strings: Multiple tags to use as keys to save the predicate used to the output set.
    */
-  out(predicate?: Call, ...tags: string[]): Path;
-  out(predicatePath?: Path, ...tags: string[]): Path;
-  out(predicateOrPath?: Call | Path, ...tags: string[]) {
+  out(predicateOrPath?: Call | Call[] | Path, ...tags: string[]) {
     const args =
       predicateOrPath !== undefined ? [predicateOrPath, ...tags] : tags;
     return this.chainStep({ type: "out", args });
@@ -308,11 +306,14 @@ export class Graph {
     this.steps = [];
   }
   private static createCallString(name: string, args): string {
-    return `${name}(${args ? args.map(Graph.argToString).join() : ""})`;
+    return `${name}(${args ? deepMap(args, Graph.argToString).join() : ""})`;
   }
   private static argToString(arg): string {
     if (arg.function) {
       return Graph.createCallString(arg.function, arg.args);
+    }
+    if (arg instanceof Path) {
+      return Graph.createGraphCallChainString(arg.steps);
     }
     if (arg instanceof Value) {
       return Graph.createGraphCallChainString(arg.path.steps);
@@ -398,4 +399,19 @@ export function regex(expression: string, includeIRIs?: boolean): Filter {
 
 export function like(pattern: string) {
   return { function: "like", args: [pattern] };
+}
+
+interface DeepArray<T> extends Array<T | DeepArray<T>> {}
+
+function deepMap<T, T2>(
+  array: DeepArray<T>,
+  func: (item: T) => T2
+): DeepArray<T> {
+  // @ts-ignore
+  return array.map((item: T): T2 | DeepArray<T2> => {
+    if (Array.isArray(item)) {
+      return deepMap(item, func);
+    }
+    return func(item);
+  });
 }
