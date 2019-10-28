@@ -52,7 +52,10 @@ const testCases: TestCase[] = [
       assert(result.length);
       for (const item of result) {
         assert.deepStrictEqual(Object.keys(item), ["id"]);
-        assert(typeof item["id"] === "string");
+        assert(typeof item.id === "object" || typeof item.id === "string");
+        if (typeof item.id === "object") {
+          assert(typeof item.id["@id"] === "string");
+        }
       }
     }
   },
@@ -68,7 +71,8 @@ const testCases: TestCase[] = [
       assert(result.length);
       for (const item of result) {
         assert.deepStrictEqual(Object.keys(item), ["id"]);
-        assert(typeof item["id"] === "string");
+        assert(typeof item["id"] === "object");
+        assert(typeof item["id"]["@id"] === "string");
       }
     }
   },
@@ -81,7 +85,10 @@ const testCases: TestCase[] = [
       for (const item of result) {
         assert(Array.isArray(item));
         for (const subItem of item) {
-          assert(typeof subItem === "string");
+          assert(typeof subItem === "object" || typeof subItem === "string");
+          if (typeof subItem === "object") {
+            assert(typeof subItem["@id"] === "string");
+          }
         }
       }
     }

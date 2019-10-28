@@ -21,6 +21,11 @@ export enum Format {
   JsonLD = "application/ld+json"
 }
 
+export enum QueryResultFormat {
+  JSON = "application/json",
+  JsonLD = "application/ld+json"
+}
+
 export default class Client {
   /** This is the only special object in the environment, generates the query objects.
    * Under the hood, they're simple objects that get compiled to a Go iterator tree when executed. */
@@ -121,6 +126,7 @@ export default class Client {
   query(
     query: string,
     language: Language = Language.Gizmo,
+    format: QueryResultFormat = QueryResultFormat.JsonLD,
     limit: number = 100
   ): Promise<Response> {
     return fetch(
@@ -130,6 +136,9 @@ export default class Client {
       })}`,
       {
         method: "POST",
+        headers: {
+          Accept: format
+        },
         body: query
       }
     );
