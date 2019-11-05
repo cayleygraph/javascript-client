@@ -346,7 +346,7 @@ export class Graph {
     return result;
   }
   /** A shorthand for Vertex. */
-  V(...nodeIds: string[]) {
+  V(...nodeIds: (string | Call)[]) {
     return this.Vertex(...nodeIds);
   }
   /** A shorthand for Morphism */
@@ -354,8 +354,11 @@ export class Graph {
     return this.Morphism();
   }
   /** Start a query path at the given vertex/vertices. No ids means "all vertices". */
-  Vertex(...nodeIds: string[]) {
-    const step: Step & { nodeIds: string[] } = { type: "Vertex", nodeIds };
+  Vertex(...nodeIds: (string | Call)[]) {
+    const step = {
+      type: "Vertex",
+      args: nodeIds
+    };
     return new Path(this, [step]);
   }
   /** Create a morphism path object. Unqueryable on it's own, defines one end of the path.

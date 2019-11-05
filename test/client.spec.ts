@@ -45,6 +45,16 @@ const testCases: TestCase[] = [
     validate: assert
   },
   {
+    name: "g.V(g.IRI('bob'))",
+    query: g => g.V(g.IRI("bob")).all(),
+    validate: result => {
+      assert(result);
+      assert(result.length === 1);
+      assert(typeof result[0] === "object");
+      assert(result[0].id["@id"] === "bob");
+    }
+  },
+  {
     name: "g.V().getLimit(-1)",
     query: g => g.V().getLimit(-1),
     validate: result => {
