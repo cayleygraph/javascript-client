@@ -296,6 +296,10 @@ class Path {
   unique() {
     return this.chainStep({ type: "unique" });
   }
+  /** Order returns values from the path in ascending order. */
+  order() {
+    return this.chainStep({ type: "order" });
+  }
 }
 
 export class Graph {
