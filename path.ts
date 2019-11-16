@@ -1,8 +1,11 @@
+import NamedNode = require("@rdfjs/data-model/lib/named-node");
+import BlankNode = require("@rdfjs/data-model/lib/blank-node");
 // @ts-ignore
 import Client, { QueryLanguage, QueryContentType } from "./client";
 class QueryException extends Error {}
 class Operator {}
 type Step = Object;
+type Identifier = NamedNode | BlankNode;
 export default class Path {
   client: Client;
   private cursor: Step | null;
@@ -32,7 +35,7 @@ export default class Path {
     const res = await this.execute();
     return res[Symbol.iterator];
   }
-  has(via: Path, values: NamedNode): Path {
+  has(via: Path, values: Identifier): Path {
     this.addStep({
       "@type": "linkedql:Has",
       "linkedql:via": via,
@@ -48,7 +51,7 @@ export default class Path {
     this.addStep({ "@type": "linkedql:Select", "linkedql:tags": tags });
     return this;
   }
-  is(values: NamedNode): Path {
+  is(values: Identifier): Path {
     this.addStep({ "@type": "linkedql:Is", "linkedql:values": values });
     return this;
   }
@@ -56,7 +59,7 @@ export default class Path {
     this.addStep({ "@type": "linkedql:Skip", "linkedql:offset": offset });
     return this;
   }
-  hasReverse(via: Path, values: NamedNode): Path {
+  hasReverse(via: Path, values: Identifier): Path {
     this.addStep({
       "@type": "linkedql:HasReverse",
       "linkedql:via": via,
@@ -116,7 +119,7 @@ export default class Path {
     this.addStep({ "@type": "linkedql:ViewBoth", "linkedql:via": via });
     return this;
   }
-  vertex(values: NamedNode): Path {
+  vertex(values: Identifier[]): Path {
     this.addStep({ "@type": "linkedql:Vertex", "linkedql:values": values });
     return this;
   }

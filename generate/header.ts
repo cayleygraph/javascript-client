@@ -1,3 +1,5 @@
+import NamedNode = require("@rdfjs/data-model/lib/named-node");
+import BlankNode = require("@rdfjs/data-model/lib/blank-node");
 // @ts-ignore
 import Client, { QueryLanguage, QueryContentType } from "./client";
 
@@ -6,6 +8,8 @@ class QueryException extends Error {}
 class Operator {}
 
 type Step = Object;
+
+type Identifier = NamedNode | BlankNode;
 
 export default class Path {
   client: Client;

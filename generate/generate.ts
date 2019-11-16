@@ -24,8 +24,16 @@ type SchemaObject = {
   "@id": string;
 };
 
+type Restriction = SchemaObject & {
+  "@type": "owl:Restriction";
+  "owl:cardinality"?: number;
+  "owl:maxCardinality"?: number;
+  "owl:onProperty"?: SchemaObject;
+};
+
 type BaseStep = SchemaObject & {
   "@type": "rdfs:Class";
+  "rdfs:subClassOf": Array<SchemaObject | Restriction>;
 };
 
 type BaseProperty = SchemaObject & {
@@ -63,7 +71,7 @@ const rangeToType = (range: string) => {
     return ts.createTypeReferenceNode("Operator", []);
   }
   if (rangeID == "rdfs:Resource") {
-    return ts.createTypeReferenceNode("NamedNode", []);
+    return ts.createTypeReferenceNode("Identifier", []);
   }
   throw Error(`Unexpected range: ${range}`);
 };
@@ -76,6 +84,10 @@ function createMethodFromStep(
   const stepTypeID = step["@id"];
   const stepTypeName = stepTypeID.replace("linkedql:", "");
   const stepName = stepTypeName[0].toLowerCase() + stepTypeName.slice(1);
+  const restrictions: Restriction[] = step["rdfs:subClassOf"].filter(
+    (subClass): subClass is Restriction =>
+      subClass["@type"] === "owl:Restriction"
+  );
   const stepProperties = properties.filter(property => {
     if (property["@id"] === "linkedql:from") {
       return false;
@@ -93,13 +105,29 @@ function createMethodFromStep(
   );
   const parameters = parameterNames.map((name, i) => {
     const property = stepProperties[i];
+    const propertyRestrictions = restrictions.filter(restriction => {
+      return restriction["owl:onProperty"]["@id"] === property["@id"];
+    });
+    const cardinality = restrictions[0] && restrictions[0]["owl:cardinality"];
+    const maxCardinality =
+      restrictions[0] && restrictions[0]["owl:maxCardinality"];
+    const baseType = rangeToType(property["rdfs:range"]);
+    let type: ts.TypeNode = baseType;
+    if (maxCardinality === 1) {
+      type = ts.createUnionTypeNode([
+        type,
+        ts.createKeywordTypeNode(ts.SyntaxKind.NullKeyword)
+      ]);
+    } else if (cardinality !== 1) {
+      type = ts.createArrayTypeNode(type);
+    }
     return ts.createParameter(
       [],
       [],
       undefined,
       name,
       undefined,
-      rangeToType(property["rdfs:range"]),
+      type,
       undefined
     );
   });
