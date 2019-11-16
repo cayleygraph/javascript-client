@@ -2,14 +2,13 @@ import NamedNode = require("@rdfjs/data-model/lib/named-node");
 import BlankNode = require("@rdfjs/data-model/lib/blank-node");
 import Literal = require("@rdfjs/data-model/lib/literal");
 import * as N3 from "./n3";
-import { Graph } from "./query-builder";
+import Path, { Identifier } from "./path";
 import "isomorphic-fetch";
 
-export { NamedNode, BlankNode, Literal, Graph };
-
-type Identifier = NamedNode | BlankNode;
+export { NamedNode, BlankNode, Literal, Path, Identifier };
 
 export enum Language {
+  LinkedQL = "linkedql",
   Gizmo = "gizmo",
   GraphQL = "graphql",
   MQL = "mql"
@@ -27,17 +26,9 @@ export enum QueryResultFormat {
 }
 
 export default class Client {
-  /** This is the only special object in the environment, generates the query objects.
-   * Under the hood, they're simple objects that get compiled to a Go iterator tree when executed. */
-  graph: Graph;
-  /** Alias of graph. This is the only special object in the environment, generates the query objects.
-  Under the hood, they're simple objects that get compiled to a Go iterator tree when executed. */
-  g: Graph;
   url: string;
   constructor(url: string = "http://localhost:64210") {
     this.url = url;
-    this.graph = new Graph(this);
-    this.g = this.graph;
   }
 
   /**
@@ -124,10 +115,10 @@ export default class Client {
    * @param limit Globally limit the number of results
    */
   query(
-    query: string,
-    language: Language = Language.Gizmo,
-    format: QueryResultFormat = QueryResultFormat.JsonLD,
-    limit: number = 100
+    query: string | Path,
+    limit: number = 100,
+    language: Language = Language.LinkedQL,
+    format: QueryResultFormat = QueryResultFormat.JsonLD
   ): Promise<Response> {
     return fetch(
       `${this.url}/api/v2/query?${new URLSearchParams({
@@ -139,7 +130,7 @@ export default class Client {
         headers: {
           Accept: format
         },
-        body: query
+        body: String(query)
       }
     );
   }

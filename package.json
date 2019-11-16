@@ -7,7 +7,8 @@
   "main": "cayley.js",
   "types": "cayley.d.ts",
   "scripts": {
-    "build": "tsc --lib ES2015 --lib dom",
+    "generate": "tsc --lib ES2015 --lib dom --resolveJsonModule generate/generate.ts; node generate/generate.js",
+    "build": "npm run generate; tsc --lib ES2015 --lib dom --resolveJsonModule",
     "test": "npm run build && mocha",
     "docs": "typedoc --module commonjs --mode file --excludeExternals --excludePrivate --exclude n3.ts,**/*.spec.ts --toc Format,Language,Client,Graph,Path",
     "prepack": "npm run build & npm run build -- --declaration"
@@ -17,13 +18,14 @@
   "dependencies": {
     "@rdfjs/data-model": "^1.1.2",
     "@types/node": "^12.7.12",
-    "isomorphic-fetch": "^2.2.1"
+    "isomorphic-fetch": "^2.2.1",
+    "prettier": "^1.19.1"
   },
   "devDependencies": {
     "@types/mocha": "^5.2.7",
     "mocha": "^6.2.1",
     "typedoc": "^0.15.0",
-    "typescript": "^3.6.4"
+    "typescript": "^3.7.2"
   },
   "directories": {
     "doc": "docs",

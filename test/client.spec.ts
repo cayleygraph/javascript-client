@@ -1,5 +1,5 @@
 import assert = require("assert");
-import Client, { NamedNode, Format, Graph } from "../cayley";
+import Client, { NamedNode, Format, Path } from "../cayley";
 
 describe("Read", () => {
   it("simple", async () => {
@@ -34,19 +34,14 @@ describe("Write", () => {
 
 type TestCase = {
   name: string;
-  query(path: Graph): Promise<any[]>;
+  query: Path;
   validate(result: any[]): void;
 };
 
 const testCases: TestCase[] = [
   {
-    name: "g.V().all()",
-    query: g => g.V().all(),
-    validate: assert
-  },
-  {
-    name: "g.V(g.IRI('bob'))",
-    query: g => g.V(g.IRI("bob")).all(),
+    name: "g.vertex(g.IRI('bob'))",
+    query: new Path().vertex([new NamedNode("bob")]),
     validate: result => {
       assert(result);
       assert(result.length === 1);
@@ -55,8 +50,8 @@ const testCases: TestCase[] = [
     }
   },
   {
-    name: "g.V().getLimit(-1)",
-    query: g => g.V().getLimit(-1),
+    name: "g.vertex()",
+    query: new Path().vertex([]),
     validate: result => {
       assert(result);
       assert(result.length);
@@ -70,12 +65,10 @@ const testCases: TestCase[] = [
     }
   },
   {
-    name: "g.V().out(g.IRI('follows')).getLimit(-1)",
-    query: g =>
-      g
-        .V()
-        .out(g.IRI("follows"))
-        .getLimit(-1),
+    name: "g.vertex().view(g.IRI('follows'))",
+    query: new Path()
+      .vertex([])
+      .view(new Path().vertex([new NamedNode("follows")])),
     validate: result => {
       assert(result);
       assert(result.length);
@@ -85,23 +78,6 @@ const testCases: TestCase[] = [
         assert(typeof item["id"]["@id"] === "string");
       }
     }
-  },
-  {
-    name: "g.emit(g.V().toArray())",
-    query: g => g.emit(g.V().toArray()),
-    validate: result => {
-      assert(result);
-      assert(result.length);
-      for (const item of result) {
-        assert(Array.isArray(item));
-        for (const subItem of item) {
-          assert(typeof subItem === "object" || typeof subItem === "string");
-          if (typeof subItem === "object") {
-            assert(typeof subItem["@id"] === "string");
-          }
-        }
-      }
-    }
   }
 ];
 
@@ -109,8 +85,11 @@ describe("Query Builder", () => {
   for (const testCase of testCases) {
     it(testCase.name, async () => {
       const client = new Client();
-      const { g } = client;
-      const result = await testCase.query(g);
+      const response = await client.query(testCase.query);
+      const { result, error } = await response.json();
+      if (error) {
+        new Error(error);
+      }
       testCase.validate(result);
     });
   }
