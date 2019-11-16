@@ -1,22 +1,16 @@
 import NamedNode = require("@rdfjs/data-model/lib/named-node");
 import BlankNode = require("@rdfjs/data-model/lib/blank-node");
 // @ts-ignore
-import Client, { QueryLanguage, QueryContentType } from "./client";
-
-class QueryException extends Error {}
+import { QueryLanguage, QueryContentType } from "./client";
 
 class Operator {}
 
 type Step = Object;
 
-type Identifier = NamedNode | BlankNode;
+export type Identifier = NamedNode | BlankNode;
 
 export default class Path {
-  client: Client;
   private cursor: Step | null;
-  constructor(client: Client) {
-    this.client = client;
-  }
   private addStep(step: Step): void {
     const previousCursor = this.cursor;
     this.cursor = step;
@@ -24,20 +18,7 @@ export default class Path {
       this.cursor = { ...this.cursor, "linkedql:from": previousCursor };
     }
   }
-  private async execute(): Promise<Object[]> {
-    let res = await this.client.query(
-      JSON.stringify(this.cursor),
-      QueryLanguage.linkedql,
-      QueryContentType.jsonLD
-    );
-    res = await res.json();
-    if ("error" in res) {
-      throw new QueryException(res.error);
-    }
-    return res.result;
-  }
-  async [Symbol.asyncIterator]() {
-    const res = await this.execute();
-    return res[Symbol.iterator];
+  toString(): string {
+    return JSON.stringify(this.cursor);
   }
 }

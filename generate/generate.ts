@@ -3,11 +3,13 @@ import fs = require("fs");
 import ts = require("typescript");
 import prettier = require("prettier");
 import * as schema from "./schema.json";
+
 const headerFile = path.join(path.dirname(__filename), "header.ts");
+const pathFile = "path.ts";
 const code = fs.readFileSync(headerFile, "utf-8");
 
 const sourceFile = ts.createSourceFile(
-  "path.ts",
+  pathFile,
   code,
   ts.ScriptTarget.Latest,
   true
@@ -34,6 +36,7 @@ type Restriction = SchemaObject & {
 type BaseStep = SchemaObject & {
   "@type": "rdfs:Class";
   "rdfs:subClassOf": Array<SchemaObject | Restriction>;
+  "rdfs:comment": string;
 };
 
 type BaseProperty = SchemaObject & {
@@ -167,12 +170,23 @@ function createMethodFromStep(
   );
 }
 
-const steps = schema.filter(object => object["@type"] === "rdfs:Class");
-const properties = schema.filter(object => object["@type"] !== "rdfs:Class");
+// @ts-ignore
+const steps: BaseStep[] = schema.filter(
+  object => object["@type"] === "rdfs:Class"
+);
+
+// @ts-ignore
+const properties: BaseProperty[] = schema.filter(
+  object =>
+    object["@type"] === "owl:ObjectProperty" ||
+    object["@type"] === "owl:DatatypeProperty"
+);
 
 const newMembers = [
   ...pathClass.members,
-  ...steps.map(step => createMethodFromStep(step, pathClass.name, properties))
+  ...steps.map((step: BaseStep) =>
+    createMethodFromStep(step, pathClass.name, properties)
+  )
 ];
 const newPathClass = ts.createClassDeclaration(
   pathClass.decorators,
@@ -205,4 +219,4 @@ const result = printer.printList(
   ),
   newSourceFile
 );
-fs.writeFileSync("path.ts", prettier.format(result, { parser: "typescript" }));
+fs.writeFileSync(pathFile, prettier.format(result, { parser: "typescript" }));
