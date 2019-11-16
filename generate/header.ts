@@ -3,6 +3,8 @@ import Client, { QueryLanguage, QueryContentType } from "./client";
 
 class QueryException extends Error {}
 
+class Operator {}
+
 type Step = Object;
 
 export default class Path {

@@ -1,6 +1,8 @@
 import path = require("path");
 import fs = require("fs");
 import ts = require("typescript");
+import prettier = require("prettier");
+import * as schema from "./schema.json";
 const headerFile = path.join(path.dirname(__filename), "header.ts");
 const code = fs.readFileSync(headerFile, "utf-8");
 
@@ -17,19 +19,131 @@ if (
 ) {
   throw new Error(`Unexpected statement: ${pathClass}`);
 }
+
+type SchemaObject = {
+  "@id": string;
+};
+
+type BaseStep = SchemaObject & {
+  "@type": "rdfs:Class";
+};
+
+type BaseProperty = SchemaObject & {
+  "@type": "owl:ObjectProperty" | "owl:DatatypeProperty";
+  /** @todo this is invalid domain should receive { @id: string } */
+  "rdfs:domain":
+    | string
+    | {
+        "@id": string;
+        "@type": "owl:Class";
+        "owl:unionOf": {
+          "@id": string;
+          "@list": BaseStep[];
+        };
+      };
+  /** @todo this is invalid range should receive { @id: string } */
+  "rdfs:range": string;
+};
+
+const rangeToType = (range: string) => {
+  const rangeID = range;
+  if (rangeID === "linkedql:PathStep") {
+    return ts.createTypeReferenceNode("Path", []);
+  }
+  if (rangeID == "xsd:string") {
+    return ts.createKeywordTypeNode(ts.SyntaxKind.StringKeyword);
+  }
+  if (rangeID == "xsd:int" || rangeID == "xsd:float") {
+    return ts.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword);
+  }
+  if (rangeID == "xsd:boolean") {
+    return ts.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword);
+  }
+  if (rangeID == "linkedql:Operator") {
+    return ts.createTypeReferenceNode("Operator", []);
+  }
+  if (rangeID == "rdfs:Resource") {
+    return ts.createTypeReferenceNode("NamedNode", []);
+  }
+  throw Error(`Unexpected range: ${range}`);
+};
+
+function createMethodFromStep(
+  step: BaseStep,
+  pathClassName: ts.Identifier,
+  properties: BaseProperty[]
+): ts.MethodDeclaration {
+  const stepTypeID = step["@id"];
+  const stepTypeName = stepTypeID.replace("linkedql:", "");
+  const stepName = stepTypeName[0].toLowerCase() + stepTypeName.slice(1);
+  const stepProperties = properties.filter(property => {
+    if (property["@id"] === "linkedql:from") {
+      return false;
+    }
+    const domain = property["rdfs:domain"];
+    if (typeof domain === "string") {
+      return domain === stepTypeID;
+    }
+    return domain["owl:unionOf"]["@list"].some(
+      step => step["@id"] === stepTypeID
+    );
+  });
+  const parameterNames = stepProperties.map(property =>
+    property["@id"].replace("linkedql:", "")
+  );
+  const parameters = parameterNames.map((name, i) => {
+    const property = stepProperties[i];
+    return ts.createParameter(
+      [],
+      [],
+      undefined,
+      name,
+      undefined,
+      rangeToType(property["rdfs:range"]),
+      undefined
+    );
+  });
+  const stepPropertyAssignments = [
+    ts.createPropertyAssignment(
+      ts.createStringLiteral("@type"),
+      ts.createStringLiteral(stepTypeID)
+    ),
+    ...stepProperties.map((property, i) => {
+      const propertyName = parameterNames[i];
+      return ts.createPropertyAssignment(
+        ts.createStringLiteral(property["@id"]),
+        ts.createIdentifier(propertyName)
+      );
+    })
+  ];
+  return ts.createMethod(
+    [],
+    [],
+    undefined,
+    stepName,
+    undefined,
+    [],
+    parameters,
+    ts.createTypeReferenceNode(pathClassName, []),
+    ts.createBlock([
+      ts.createStatement(
+        ts.createCall(
+          ts.createPropertyAccess(ts.createThis(), "addStep"),
+          [],
+          [ts.createObjectLiteral(stepPropertyAssignments)]
+        )
+      ),
+      ts.createReturn(ts.createThis())
+    ])
+  );
+}
+
+const steps = schema.filter(object => object["@type"] === "rdfs:Class");
+const properties = schema.filter(object => object["@type"] !== "rdfs:Class");
+
 const newMembers = [
   ...pathClass.members,
-  ts.createMethod(
-    [],
-    [],
-    undefined,
-    "v",
-    undefined,
-    [],
-    [],
-    ts.createTypeReferenceNode(pathClass.name, []),
-    ts.createBlock([ts.createReturn(ts.createThis())])
-  )
+  ...steps.map(step => createMethodFromStep(step, pathClass.name, properties))
 ];
 const newPathClass = ts.createClassDeclaration(
   pathClass.decorators,
@@ -62,4 +176,4 @@ const result = printer.printList(
   ),
   newSourceFile
 );
-fs.writeFileSync("path.ts", result);
+fs.writeFileSync("path.ts", prettier.format(result, { parser: "typescript" }));

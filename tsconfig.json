@@ -1,3 +1,4 @@
 {
-  "lib": ["ES2015", "dom"]
+  "lib": ["ES2015", "dom"],
+  "resolveJsonModule": true
 }
