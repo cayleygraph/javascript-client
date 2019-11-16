@@ -108,9 +108,10 @@ function createMethodFromStep(
     const propertyRestrictions = restrictions.filter(restriction => {
       return restriction["owl:onProperty"]["@id"] === property["@id"];
     });
-    const cardinality = restrictions[0] && restrictions[0]["owl:cardinality"];
+    const cardinality =
+      propertyRestrictions[0] && propertyRestrictions[0]["owl:cardinality"];
     const maxCardinality =
-      restrictions[0] && restrictions[0]["owl:maxCardinality"];
+      propertyRestrictions[0] && propertyRestrictions[0]["owl:maxCardinality"];
     const baseType = rangeToType(property["rdfs:range"]);
     let type: ts.TypeNode = baseType;
     if (maxCardinality === 1) {

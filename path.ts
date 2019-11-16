@@ -35,7 +35,7 @@ export default class Path {
     const res = await this.execute();
     return res[Symbol.iterator];
   }
-  has(via: Path, values: Identifier): Path {
+  has(via: Path, values: Identifier[]): Path {
     this.addStep({
       "@type": "linkedql:Has",
       "linkedql:via": via,
@@ -43,15 +43,15 @@ export default class Path {
     });
     return this;
   }
-  union(steps: Path): Path {
+  union(steps: Path[]): Path {
     this.addStep({ "@type": "linkedql:Union", "linkedql:steps": steps });
     return this;
   }
-  select(tags: string): Path {
+  select(tags: string[]): Path {
     this.addStep({ "@type": "linkedql:Select", "linkedql:tags": tags });
     return this;
   }
-  is(values: Identifier): Path {
+  is(values: Identifier[]): Path {
     this.addStep({ "@type": "linkedql:Is", "linkedql:values": values });
     return this;
   }
@@ -59,7 +59,7 @@ export default class Path {
     this.addStep({ "@type": "linkedql:Skip", "linkedql:offset": offset });
     return this;
   }
-  hasReverse(via: Path, values: Identifier): Path {
+  hasReverse(via: Path, values: Identifier[]): Path {
     this.addStep({
       "@type": "linkedql:HasReverse",
       "linkedql:via": via,
@@ -79,7 +79,7 @@ export default class Path {
     this.addStep({ "@type": "linkedql:Labels" });
     return this;
   }
-  properties(names: string): Path {
+  properties(names: string[]): Path {
     this.addStep({ "@type": "linkedql:Properties", "linkedql:names": names });
     return this;
   }
@@ -107,11 +107,11 @@ export default class Path {
     this.addStep({ "@type": "linkedql:Order" });
     return this;
   }
-  intersect(steps: Path): Path {
+  intersect(steps: Path[]): Path {
     this.addStep({ "@type": "linkedql:Intersect", "linkedql:steps": steps });
     return this;
   }
-  difference(steps: Path): Path {
+  difference(steps: Path[]): Path {
     this.addStep({ "@type": "linkedql:Difference", "linkedql:steps": steps });
     return this;
   }
@@ -127,7 +127,7 @@ export default class Path {
     this.addStep({ "@type": "linkedql:As", "linkedql:name": name });
     return this;
   }
-  reverseProperties(names: string): Path {
+  reverseProperties(names: string[]): Path {
     this.addStep({
       "@type": "linkedql:ReverseProperties",
       "linkedql:names": names
@@ -172,7 +172,7 @@ export default class Path {
     this.addStep({ "@type": "linkedql:Unique" });
     return this;
   }
-  selectFirst(tags: string): Path {
+  selectFirst(tags: string[]): Path {
     this.addStep({ "@type": "linkedql:SelectFirst", "linkedql:tags": tags });
     return this;
   }
