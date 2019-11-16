@@ -12,7 +12,7 @@ const sourceFile = ts.createSourceFile(
   ts.ScriptTarget.Latest,
   true
 );
-// const classDeclaration = ts.createClassDeclaration([], [], "Path", [], [], []);
+
 const pathClass = sourceFile.statements[sourceFile.statements.length - 1];
 if (
   !(ts.isClassDeclaration(pathClass) && pathClass.name.escapedText === "Path")
