@@ -16,8 +16,12 @@ npm install @cayleygraph/cayley
 import * as cayley from "@cayleygraph/cayley";
 
 const client = new cayley.Client();
-
-for (node of client.g.V().getLimit(10)) {
-  console.log(node);
-}
+const response = client.query(g.V().getLimit(10));
+response
+  .then(res => res.json())
+  .then(nodes => {
+    for (const node of nodes) {
+      console.log(node);
+    }
+  });
 ```
