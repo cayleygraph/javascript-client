@@ -34,7 +34,7 @@ describe("Write", () => {
 
 type TestCase = {
   name: string;
-  query(path: Graph): Promise<any[]>;
+  query(path: Graph): { toString(): string };
   validate(result: any[]): void;
 };
 
@@ -110,7 +110,13 @@ describe("Query Builder", () => {
     it(testCase.name, async () => {
       const client = new Client();
       const { g } = client;
-      const result = await testCase.query(g);
+      const query = testCase.query(g).toString();
+      console.log(query);
+      const response = await client.query(query);
+      const { error, result } = await response.json();
+      if (error) {
+        throw new Error(error);
+      }
       testCase.validate(result);
     });
   }
