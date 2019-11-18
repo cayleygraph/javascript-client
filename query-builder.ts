@@ -33,13 +33,15 @@ type Step = { type: string; args?: any[] };
  * ```
  */
 export class Path {
+  globalCalls: Call[];
   /** @todo make path to accept type variable of fields */
-  steps: (Call | Step)[];
-  constructor(steps: (Call | Step)[] = []) {
+  steps: Step[];
+  constructor(steps: Step[] = [], globalCalls: Call[] = []) {
     this.steps = steps;
+    this.globalCalls = globalCalls;
   }
   private chainStep(step: Step): Path {
-    return new Path([...this.steps, step]);
+    return new Path([...this.steps, step], this.globalCalls);
   }
   /** Execute the query and adds the results, with all tags, as a string-to-string (tag to node) map in the output set, one for each path that a traversal could take. */
   all(): Path {
@@ -254,40 +256,63 @@ export class Path {
   order(): Path {
     return this.chainStep({ type: "order" });
   }
-  private static createCallString(name: string, args): string {
+  private static createCallString(
+    name: string,
+    args: Array<Call | Path | string>
+  ): string {
     return `${name}(${args ? deepMap(args, Path.argToString).join() : ""})`;
   }
-  private static argToString(arg): string {
-    if (arg.function) {
+  private static argToString(arg: Call | Path | string): string {
+    if (typeof arg === "object" && "function" in arg) {
       return Path.createCallString(arg.function, arg.args);
     }
     if (arg instanceof Path) {
-      return Path.createGraphCallChainString(
-        arg.steps.filter((step): step is Step => "type" in step)
-      );
+      return Path.createGraphCallChainString(arg.steps);
     }
     return JSON.stringify(arg);
   }
   private static createMethodCallString(
     expression: string,
-    step: Step
+    name: string,
+    args: Array<Call | Path | string>
   ): string {
-    return `${expression}.${Path.createCallString(step.type, step.args)}`;
+    return `${expression}.${Path.createCallString(name, args)}`;
   }
   private static GraphExpression = "graph";
   private static createGraphCallChainString(steps: Step[]): string {
-    return steps.reduce(Path.createMethodCallString, Path.GraphExpression);
+    return steps.reduce(
+      (acc, step) => Path.createMethodCallString(acc, step.type, step.args),
+      Path.GraphExpression
+    );
   }
   toString(): string {
-    const globalCalls = this.steps
-      .filter((step): step is Call => "function" in step)
-      .map(call => Path.createCallString(Path.GraphExpression, call));
-    const steps = this.steps.filter((step): step is Step => "type" in step);
-    return [...globalCalls, Path.createGraphCallChainString(steps)].join(";");
+    const globalCalls = this.globalCalls.map(call =>
+      Path.createMethodCallString(
+        Path.GraphExpression,
+        call.function,
+        call.args
+      )
+    );
+    return [...globalCalls, Path.createGraphCallChainString(this.steps)].join(
+      ";"
+    );
   }
 }
 
 export class Graph {
+  calls: Call[];
+
+  private chainCall(call: Call): Graph {
+    const clone = new Graph();
+    clone.calls = this.calls || [];
+    clone.calls.push(call);
+    return clone;
+  }
+
+  private createPath(steps: Step[]): Path {
+    return new Path(steps, this.calls);
+  }
+
   /** A shorthand for Vertex. */
   V(...nodeIds: (string | Call)[]): Path {
     return this.Vertex(...nodeIds);
@@ -302,28 +327,28 @@ export class Graph {
       type: "Vertex",
       args: nodeIds
     };
-    return new Path([step]);
+    return this.createPath([step]);
   }
   /** Create a morphism path object. Unqueryable on it's own, defines one end of the path.
   Saving these to variables with */
   Morphism(): Path {
-    return new Path([{ type: "Morphism" }]);
+    return this.createPath([{ type: "Morphism" }]);
   }
   /** Load all namespaces saved to graph. */
-  loadNamespaces(): Path {
-    return new Path([{ function: "g.loadNamespaces", args: [] }]);
+  loadNamespaces(): Graph {
+    return this.chainCall({ function: "loadNamespaces", args: [] });
   }
   /** Register all default namespaces for automatic IRI resolution. */
-  addDefaultNamespaces(): Path {
-    return new Path([{ function: "g.addDefaultNamespaces", args: [] }]);
+  addDefaultNamespaces(): Graph {
+    return this.chainCall({ function: "addDefaultNamespaces", args: [] });
   }
   /** Associate prefix with a given IRI namespace. */
-  addNamespace(pref: string, ns: string): Path {
-    return new Path([{ function: "g.addNamespace", args: [pref, ns] }]);
+  addNamespace(pref: string, ns: string): Graph {
+    return this.chainCall({ function: "addNamespace", args: [pref, ns] });
   }
   /** Add data programmatically to the JSON result list. Can be any JSON type. */
   emit(value: Path): Path {
-    return new Path([{ type: "emit", args: [value] }]);
+    return this.createPath([{ type: "emit", args: [value] }]);
   }
   /** Create an IRI values from a given string. */
   IRI(iri: string): Call {

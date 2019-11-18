@@ -40,12 +40,12 @@ type TestCase = {
 
 const testCases: TestCase[] = [
   {
-    name: "g.V().all()",
+    name: "graph.Vertex().all()",
     query: g => g.V().all(),
     validate: assert
   },
   {
-    name: "g.V(g.IRI('bob'))",
+    name: "graph.Vertex(graph.IRI('bob'))",
     query: g => g.V(g.IRI("bob")).all(),
     validate: result => {
       assert(result);
@@ -55,7 +55,7 @@ const testCases: TestCase[] = [
     }
   },
   {
-    name: "g.V().getLimit(-1)",
+    name: "graph.Vertex().getLimit(-1)",
     query: g => g.V().getLimit(-1),
     validate: result => {
       assert(result);
@@ -70,7 +70,7 @@ const testCases: TestCase[] = [
     }
   },
   {
-    name: "g.V().out(g.IRI('follows')).getLimit(-1)",
+    name: "graph.Vertex().out(graph.IRI('follows')).getLimit(-1)",
     query: g =>
       g
         .V()
@@ -87,7 +87,7 @@ const testCases: TestCase[] = [
     }
   },
   {
-    name: "g.emit(g.V().toArray())",
+    name: "graph.emit(graph.Vertex().toArray())",
     query: g => g.emit(g.V().toArray()),
     validate: result => {
       assert(result);
@@ -102,6 +102,19 @@ const testCases: TestCase[] = [
         }
       }
     }
+  },
+  {
+    name:
+      'graph.addNamespace("x","http://example.com/x");graph.addNamespace("y","http://example.com/y");graph.Vertex().all()',
+    query: g =>
+      g
+        .addNamespace("x", "http://example.com/x")
+        .addNamespace("y", "http://example.com/y")
+        .V()
+        .all(),
+    validate: result => {
+      assert(result);
+    }
   }
 ];
 
@@ -111,7 +124,7 @@ describe("Query Builder", () => {
       const client = new Client();
       const { g } = client;
       const query = testCase.query(g).toString();
-      console.log(query);
+      assert.equal(query, testCase.name);
       const response = await client.query(query);
       const { error, result } = await response.json();
       if (error) {
