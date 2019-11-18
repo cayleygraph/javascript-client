@@ -45,7 +45,7 @@ const testCases: TestCase[] = [
     validate: assert
   },
   {
-    name: "graph.Vertex(graph.IRI('bob'))",
+    name: "graph.Vertex(graph.IRI('bob')).all()",
     query: g => g.V(g.IRI("bob")).all(),
     validate: result => {
       assert(result);
@@ -70,7 +70,7 @@ const testCases: TestCase[] = [
     }
   },
   {
-    name: "graph.Vertex().out(graph.IRI('follows')).getLimit(-1)",
+    name: 'graph.Vertex().out(g.IRI("follows")).getLimit(-1)',
     query: g =>
       g
         .V()
