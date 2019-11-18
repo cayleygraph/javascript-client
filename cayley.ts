@@ -2,10 +2,10 @@ import NamedNode = require("@rdfjs/data-model/lib/named-node");
 import BlankNode = require("@rdfjs/data-model/lib/blank-node");
 import Literal = require("@rdfjs/data-model/lib/literal");
 import * as N3 from "./n3";
-import { Graph } from "./query-builder";
+import { Graph, Path } from "./query-builder";
 import "isomorphic-fetch";
 
-export { NamedNode, BlankNode, Literal, Graph };
+export { NamedNode, BlankNode, Literal, Graph, Path };
 
 type Identifier = NamedNode | BlankNode;
 
@@ -36,7 +36,7 @@ export default class Client {
   url: string;
   constructor(url: string = "http://localhost:64210") {
     this.url = url;
-    this.graph = new Graph(this);
+    this.graph = new Graph();
     this.g = this.graph;
   }
 
