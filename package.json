@@ -2,7 +2,7 @@
   "name": "@cayleygraph/cayley",
   "type": "module",
   "private": false,
-  "version": "1.1.5",
+  "version": "1.2.0",
   "description": "JavaScript client for Cayley",
   "main": "cayley.js",
   "types": "cayley.d.ts",
