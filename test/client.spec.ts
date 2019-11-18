@@ -45,7 +45,7 @@ const testCases: TestCase[] = [
     validate: assert
   },
   {
-    name: "graph.Vertex(graph.IRI('bob')).all()",
+    name: 'graph.Vertex(g.IRI("bob")).all()',
     query: g => g.V(g.IRI("bob")).all(),
     validate: result => {
       assert(result);
